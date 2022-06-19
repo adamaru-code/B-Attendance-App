@@ -8,7 +8,7 @@ class SessionsController < ApplicationController
     if user && user.authenticate(params[:session][:password])
       log_in user # 引数として指定するためのカッコ()を省略して記述 log_in(user)
       remember user
-      redirect_to user # 上記同様 redirect_to(user)
+      redirect_back_or user # 上記同様 redirect_to(user)
     else
       flash.now[:danger] = "認証に失敗しました。"
       render :new
