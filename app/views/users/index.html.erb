@@ -13,6 +13,8 @@
     <% @users.each do |user| %>
       <tr>
         <td><%= link_to user.name, user %></td>
+        <td><%= link_to "削除", user, method: :delete,
+              data: { confirm: "削除してよろしいですか？" } %></td>
       </tr>
     <% end %>
   </table>
