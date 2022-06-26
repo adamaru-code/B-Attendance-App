@@ -4,7 +4,33 @@ class ApplicationController < ActionController::Base
 
   $days_of_the_week = %w{日 月 火 水 木 金 土}
 
-  # ページ出力前に1ヶ月分のデータの存在を確認・セット、before_actionとして実行（対象はusersコントローラーのshowアクション）
+  # beforeフィルター
+  
+  # paramsハッシュからユーザーを取得します。
+  def set_user
+    @user = User.find(params[:id])
+  end
+
+  # ログイン済みのユーザーか確認します。
+  def logged_in_user
+    unless logged_in?
+      store_location # （sessions_helper.rb参照）
+      flash[:danger] = "ログインしてください。"
+      redirect_to login_url
+    end
+  end
+  
+  # アクセスしたユーザーが現在ログインしているユーザーか確認します。
+  def correct_user
+    redirect_to(root_url) unless current_user?(@user) # current_user?(user) （sessions_helper.rb参照） 
+  end
+  
+  # システム管理権限所有かどうか判定します。
+  def admin_user
+    redirect_to root_url unless current_user.admin?
+  end
+
+  # ページ出力前に1ヶ月分のデータの存在を確認・セット、before_actionとして実行
   def set_one_month
     @first_day = params[:date].nil? ?
     Date.current.beginning_of_month : params[:date].to_date
@@ -26,4 +52,13 @@ class ApplicationController < ActionController::Base
     flash[:danger] = "ページ情報の取得に失敗しました、再アクセスしてください。"
     redirect_to root_url
   end
+  
+  # 管理権限者、または現在ログインしているユーザーを許可します。
+  def admin_or_correct_user
+    @user = User.find(params[:user_id]) if @user.blank?
+    unless current_user?(@user) || current_user.admin # どちらかの条件式がtrueか、どちらもtrueの時には何も実行されない処理
+      flash[:danger] = "編集権限がありません。"
+      redirect_to(root_url)
+    end  
+  end   
 end
